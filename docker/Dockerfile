@@ -114,12 +114,18 @@ RUN --mount=type=cache,id=conda_pkgs,target=/opt/conda/pkgs,sharing=locked \
     # Install mamba, boa and git here. Conda build breaks with other git installs
     /opt/conda/bin/mamba install -y -n base -c conda-forge "boa" "git >=2.35.3" "python=${PYTHON_VER}" "tini=0.19"
 
+# ============ OpenShift ============
+# ref https://docs.openshift.com/container-platform/4.15/openshift_images/create-images.html#use-uid_create-images
+RUN mkdir -p /.cache /opt/conda && chgrp -R 0 /.cache /opt/conda && chmod -R g=u /.cache /opt/conda
+
 # ============ Stage: conda_env ============
 # Create the conda environment and install all dependencies
 FROM base as conda_env
 
 ARG MORPHEUS_ROOT_HOST
-
+# ============ Buildah  ============
+# TODO build-arg PYTHON_VER=3.10 not passed or overriden
+ARG PYTHON_VER=3.10
 # Create a base environment
 RUN --mount=type=cache,id=conda_pkgs,target=/opt/conda/pkgs,sharing=locked \
     # Create the environment and install as little dependencies as possible
